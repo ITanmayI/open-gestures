@@ -1,0 +1,14 @@
+{
+  "gesture_map": {
+    "default": {
+      "close_2": "kill_window",
+      "open_1": "play_media",
+      "close_1": "pause_media"
+    },
+    "custom": {}
+  },
+  "swipe": {
+    "frame_limit": 20,
+    "displacement_threshold": 0.25
+  }
+}

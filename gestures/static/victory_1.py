@@ -11,7 +11,7 @@ enough from all other bindings to avoid accidental triggers.
 from __future__ import annotations
 
 GESTURE_LABEL = "Victory"
-GESTURE_NAME  = "point_down_1"
+GESTURE_NAME  = "victory_1"
 
 
 def matches(result) -> bool:
