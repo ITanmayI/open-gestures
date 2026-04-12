@@ -1,10 +1,9 @@
+from __future__ import annotations
+
 import os
 import time
 import threading
-import importlib   # used to dynamically import gesture modules at runtime
-import pkgutil     # used to discover all .py files under gestures/static/ and gestures/motion/
 from pathlib import Path
-from typing import Optional  # used for Optional[str] return type in router.route()
 
 import cv2
 import mediapipe as mp
@@ -13,292 +12,162 @@ from mediapipe.tasks.python import vision as mp_vision
 from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTaskRunningMode
 
 from core.cooldown import Cooldown
+from core.router  import GestureRouter
 
+# Forces OpenCV to use X11/xcb backend on Wayland — without this cv2.imshow() can crash
 os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
 
-# Path to the MediaPipe gesture recognition model file
 MODEL_PATH = Path(__file__).parent / "models" / "gesture_recognizer.task"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Thread-safe result slot
-# ═══════════════════════════════════════════════════════════════════════════
+# ── Thread-safe result slot ────────────────────────────────────────────────
 
 class _ResultSlot:
-    """
-    Shared memory between MediaPipe's callback thread and the main loop.
-    MediaPipe fires _on_result() on its own internal thread, so we need
-    a lock to safely pass results across to the main thread.
-    """
+    """Passes MediaPipe results from its callback thread to the main loop safely."""
 
     def __init__(self) -> None:
-        self._lock   = threading.Lock()  # prevents race conditions between threads
-        self._result = None              # latest raw GestureRecognizerResult
-        self._label  = ""               # latest formatted string for the overlay
+        self._lock   = threading.Lock()
+        self._result = None
+        self._label  = ""
 
     def put(self, result) -> None:
-        # Called from MediaPipe's thread — stores result and pre-formats the label
         with self._lock:
             self._result = result
             self._label  = _format_label(result)
 
     def get(self):
-        # Called from main thread — returns the latest result
         with self._lock:
             return self._result
 
     def label(self) -> str:
-        # Called from main thread — returns the latest overlay label string
         with self._lock:
             return self._label
 
 
 def _format_label(result) -> str:
-    """Converts a GestureRecognizerResult into a human-readable overlay string."""
+    """Converts a GestureRecognizerResult into a readable string for the overlay."""
     if not result or not result.gestures:
         return ""
     parts = []
     for i, hand_gestures in enumerate(result.gestures):
         if hand_gestures:
-            top  = hand_gestures[0]  # highest-confidence gesture for this hand
+            top  = hand_gestures[0]
             side = ""
             if result.handedness and i < len(result.handedness):
-                side = result.handedness[i][0].category_name + " "  # "Left " or "Right "
+                side = result.handedness[i][0].category_name + " "
             parts.append(f"{side}{top.category_name} ({top.score:.2f})")
-    return "  |  ".join(parts)  # e.g. "Left Closed_Fist (0.91)  |  Right Open_Palm (0.88)"
+    return "  |  ".join(parts)
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Gesture router
-# ═══════════════════════════════════════════════════════════════════════════
+# ── MediaPipe recognizer ───────────────────────────────────────────────────
 
-class GestureRouter:
-    """
-    Auto-discovers and loads all gesture modules, then routes each
-    incoming MediaPipe result to the first module that matches.
-    """
-
-    def __init__(self, cooldown: Cooldown) -> None:
-        self._cooldown = cooldown  # shared cooldown registry
-        self._modules  = []        # ordered list of loaded gesture modules
-        self._load_gestures()
-
-    def _load_gestures(self) -> None:
-        """
-        Scans gestures/static/ and gestures/motion/ for .py modules.
-        Imports each one and checks it satisfies the module contract.
-        Sorts _2 (double-hand) modules before _1 (single-hand) so
-        two-hand gestures always get priority in routing.
-        """
-        base    = Path(__file__).parent / "gestures"
-        subdirs = ["static", "motion"]
-
-        raw: list[tuple[str, object]] = []
-        for sub in subdirs:
-            pkg_path = base / sub
-            if not pkg_path.exists():
-                continue
-
-            pkg_name = f"gestures.{sub}"  # e.g. "gestures.static"
-            for _finder, mod_name, _ispkg in pkgutil.iter_modules([str(pkg_path)]):
-                full_name = f"{pkg_name}.{mod_name}"  # e.g. "gestures.static.close_2"
-                try:
-                    mod = importlib.import_module(full_name)
-                except Exception as exc:
-                    print(f"[GestureRouter] Failed to import {full_name}: {exc}")
-                    continue
-
-                # Skip any module missing the required interface
-                if not all(hasattr(mod, attr) for attr in ("GESTURE_NAME", "matches", "action")):
-                    print(f"[GestureRouter] Skipping {full_name} — missing contract")
-                    continue
-
-                raw.append((mod.GESTURE_NAME, mod))
-
-        # _2 modules (double-hand) sort before _1 (single-hand)
-        # Within each tier, sort alphabetically for deterministic load order
-        def sort_key(item):
-            name, _ = item
-            return (0 if name.endswith("_2") else 1, name)
-
-        raw.sort(key=sort_key)
-        self._modules = [mod for _, mod in raw]
-
-        print(f"[GestureRouter] Loaded {len(self._modules)} gesture modules:")
-        for mod in self._modules:
-            print(f"  • {mod.GESTURE_NAME}")
-
-    def route(self, result) -> Optional[str]:
-        """
-        Iterates modules in priority order.
-        For the first module whose matches() returns True and whose
-        cooldown has elapsed, fires action() and records the trigger.
-        Returns the GESTURE_NAME that fired, or None if nothing matched.
-        """
-        if result is None:
-            return None
-
-        for mod in self._modules:
-            try:
-                if mod.matches(result):
-                    name = mod.GESTURE_NAME
-                    if self._cooldown.can_trigger(name):
-                        mod.action()
-                        self._cooldown.record(name)
-                        return name
-            except Exception as exc:
-                print(f"[GestureRouter] Error in {mod.GESTURE_NAME}: {exc}")
-
-        return None
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Recognizer builder
-# ═══════════════════════════════════════════════════════════════════════════
-
-def build_recognizer(slot: _ResultSlot) -> mp_vision.GestureRecognizer:
-    """Configures and returns a MediaPipe GestureRecognizer in LIVE_STREAM mode."""
-
+def _build_recognizer(slot: _ResultSlot) -> mp_vision.GestureRecognizer:
     def _on_result(result, _output_image, _timestamp_ms: int) -> None:
-        # Fired on MediaPipe's internal thread for every processed frame
-        # Only store the result — never draw here, drawing must be on the main thread
-        slot.put(result)
+        slot.put(result)  # store only — never draw from a callback thread
 
     options = mp_vision.GestureRecognizerOptions(
-        base_options=mp_python.BaseOptions(
-            model_asset_path=str(MODEL_PATH),  # path to the .task model file
-        ),
-        running_mode=VisionTaskRunningMode.LIVE_STREAM,  # async, non-blocking mode
-        num_hands=2,                          # detect up to 2 hands simultaneously
-        min_hand_detection_confidence=0.5,    # minimum confidence to detect a new hand
-        min_hand_presence_confidence=0.5,     # minimum confidence to keep tracking a hand
-        min_tracking_confidence=0.5,          # minimum confidence to continue tracking
-        result_callback=_on_result,           # callback fired when a frame is processed
+        base_options=mp_python.BaseOptions(model_asset_path=str(MODEL_PATH)),
+        running_mode=VisionTaskRunningMode.LIVE_STREAM,
+        num_hands=2,
+        min_hand_detection_confidence=0.5,
+        min_hand_presence_confidence=0.5,
+        min_tracking_confidence=0.5,
+        result_callback=_on_result,
     )
     return mp_vision.GestureRecognizer.create_from_options(options)
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Overlay drawing
-# ═══════════════════════════════════════════════════════════════════════════
+# ── Overlay ────────────────────────────────────────────────────────────────
 
-def draw_overlay(frame, label: str, fired: str) -> None:
-    """Draws the gesture detection label and last fired action onto the frame."""
-    h, w = frame.shape[:2]  # frame dimensions (height, width) — w unused but kept for clarity
-
-    # Draw a semi-transparent black bar across the top of the frame
-    bar = frame.copy()
-    cv2.rectangle(bar, (0, 0), (w, 60), (0, 0, 0), -1)   # solid black rectangle
-    cv2.addWeighted(bar, 0.45, frame, 0.55, 0, frame)     # blend: 45% black, 55% original frame
-
-    # Show currently detected gesture(s) in light blue
-    cv2.putText(
-        frame,
-        f"Detected: {label or 'none'}",
-        (12, 24),                        # position: 12px from left, 24px from top
-        cv2.FONT_HERSHEY_SIMPLEX, 0.60, (200, 230, 255), 1, cv2.LINE_AA,
-    )
-
-    # Show last fired action in green (only visible for 1.2s after firing)
+def _draw_overlay(frame, label: str, fired: str) -> None:
+    h, w = frame.shape[:2]
+    bar  = frame.copy()
+    cv2.rectangle(bar, (0, 0), (w, 60), (0, 0, 0), -1)
+    cv2.addWeighted(bar, 0.45, frame, 0.55, 0, frame)
+    cv2.putText(frame, f"Detected: {label or 'none'}",
+                (12, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.60, (200, 230, 255), 1, cv2.LINE_AA)
     if fired:
-        cv2.putText(
-            frame,
-            f"Action fired: {fired}",
-            (12, 50),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.60, (80, 255, 120), 2, cv2.LINE_AA,
-        )
+        cv2.putText(frame, f"Action fired: {fired}",
+                    (12, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.60, (80, 255, 120), 2, cv2.LINE_AA)
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Main
-# ═══════════════════════════════════════════════════════════════════════════
+# ── Main ───────────────────────────────────────────────────────────────────
 
 def main() -> None:
     if not MODEL_PATH.exists():
         raise FileNotFoundError(
             f"Model not found: {MODEL_PATH}\n"
-            "Download it with:\n"
+            "Download with:\n"
             "  wget https://storage.googleapis.com/mediapipe-models/"
             "gesture_recognizer/gesture_recognizer/float16/latest/"
             "gesture_recognizer.task -O models/gesture_recognizer.task"
         )
 
-    slot     = _ResultSlot()     # thread-safe container for MediaPipe results
-    cooldown = Cooldown()        # per-gesture cooldown registry
-    router   = GestureRouter(cooldown)  # loads all gesture modules and routes results
+    slot   = _ResultSlot()
+    router = GestureRouter(Cooldown())  # router loads gestures + actions internally
 
-    # Open the default webcam (index 0)
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        cap = cv2.VideoCapture(0, cv2.CAP_V4L2)  # fallback: explicitly request V4L2 backend
+        cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
     if not cap.isOpened():
         raise RuntimeError("Cannot open webcam at index 0.")
 
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH,  640)  # request 640px wide frames
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # request 480px tall frames
-    cap.set(cv2.CAP_PROP_FPS, 30)            # request 30fps (camera may ignore this)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH,  640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 30)
 
-    recognizer = build_recognizer(slot)  # start the MediaPipe recognizer
+    recognizer = _build_recognizer(slot)
 
-    t0      = time.monotonic()  # reference time for computing frame timestamps
-    last_ts = -1                # tracks the last timestamp sent to recognize_async()
+    t0               = time.monotonic()
+    last_ts          = -1
+    fired_name       = ""
+    fired_clear_time = 0.0
 
-    fired_name       = ""    # name of the last gesture that triggered an action
-    fired_clear_time = 0.0   # monotonic time after which fired_name is cleared from overlay
-
-    print("Open-Gestures running.  Press ESC in the window to exit.")
+    print("Open-Gestures running. Press ESC to exit.")
 
     try:
         while True:
-            ret, bgr = cap.read()  # read next frame from webcam; ret=False if camera failed
+            ret, bgr = cap.read()
             if not ret:
-                time.sleep(0.01)   # brief pause before retrying on a dropped frame
+                time.sleep(0.01)
                 continue
 
-            bgr = cv2.flip(bgr, 1)              # mirror horizontally so it feels like a mirror
-            rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)  # MediaPipe requires RGB, OpenCV gives BGR
+            bgr = cv2.flip(bgr, 1)
+            rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
-            # Compute a strictly monotonically increasing timestamp in milliseconds
-            # MediaPipe requires each call to recognize_async() has a larger timestamp than the last
             ts_ms = int((time.monotonic() - t0) * 1000)
             if ts_ms <= last_ts:
-                ts_ms = last_ts + 1  # guarantee strictly increasing even if clock resolution is low
+                ts_ms = last_ts + 1
             last_ts = ts_ms
 
-            # Wrap the frame in a MediaPipe Image object
-            # .copy() is REQUIRED — without it MediaPipe's internal threads hold a reference
-            # to the buffer and you get: "Packet isn't the sole owner" RuntimeError
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb.copy())
+            # .copy() required — MediaPipe holds a buffer reference across threads
+            recognizer.recognize_async(
+                mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb.copy()),
+                ts_ms,
+            )
 
-            # Submit frame for async processing — returns immediately, result arrives via callback
-            recognizer.recognize_async(mp_image, ts_ms)
-
-            # Read the latest result stored by the callback (may be one frame behind — acceptable)
             result    = slot.get()
-            label     = slot.label()
-            triggered = router.route(result)  # check all gesture modules and fire if matched
+            triggered = router.route(result)
+            now       = time.monotonic()
 
-            now = time.monotonic()
             if triggered:
-                fired_name       = triggered        # update overlay with fired gesture name
-                fired_clear_time = now + 1.2        # keep it visible for 1.2 seconds
-
+                fired_name       = triggered
+                fired_clear_time = now + 1.2
             if now >= fired_clear_time:
-                fired_name = ""  # clear the overlay after 1.2s
+                fired_name = ""
 
-            draw_overlay(bgr, label, fired_name)  # draw detection info onto the frame
-            cv2.imshow("Open-Gestures", bgr)      # display the frame in a window
+            _draw_overlay(bgr, slot.label(), fired_name)
+            cv2.imshow("Open-Gestures", bgr)
 
-            if cv2.waitKey(1) & 0xFF == 27:  # wait 1ms for a keypress; ESC (27) exits
+            if cv2.waitKey(1) & 0xFF == 27:
                 break
 
     finally:
-        # Always clean up even if an exception occurs
-        cap.release()             # release the webcam
-        recognizer.close()        # shut down MediaPipe recognizer and its threads
-        cv2.destroyAllWindows()   # close the OpenCV display window
+        cap.release()
+        recognizer.close()
+        cv2.destroyAllWindows()
         print("Exited cleanly.")
 
 
 if __name__ == "__main__":
-    main()  # only run if executed directly, not when imported as a module
+    main()
