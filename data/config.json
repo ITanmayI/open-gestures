@@ -2,8 +2,29 @@
   "gesture_map": {
     "default": {
       "close_2": "kill_window",
+      "close_1": "pause_media",
       "open_1": "play_media",
-      "close_1": "pause_media"
+      "open_2": "open_browser",
+      "thumb_up_1": "volume_up",
+      "thumb_up_2": "next_workspace",
+      "thumb_down_1": "volume_down",
+      "thumb_down_2": "previous_database",
+      "iloveyou_1": "mute_media",
+      "iloveyou_2": "screenshot",
+      "point_up_1": "brightness_up",
+      "point_up_2": "brightness_down",
+      "point_down_1": "",
+      "point_down_2": "",
+      "peace_1": "",
+      "peace_2": "",
+      "swipe_up_1": "",
+      "swipe_up_2": "",
+      "swipe_down_1": "",
+      "swipe_down_2": "",
+      "swipe_left_1": "",
+      "swipe_left_2": "",
+      "swipe_right_1": "",
+      "swipe_right_2": ""
     },
     "custom": {}
   },
