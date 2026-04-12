@@ -12,7 +12,6 @@ class MuteMedia(BaseAction):
         
         if sys=="linux":
                 try:
-                    import subprocess
                     subprocess.Popen(
                         ["pactl", "set-sink-mute", "@DEFAULT_SINK@", "1"],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

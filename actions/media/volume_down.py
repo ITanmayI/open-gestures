@@ -12,7 +12,6 @@ class VolumeDown(BaseAction):
         
         if sys=="linux":
             try:
-                import subprocess
                 subprocess.Popen(
                     ["pactl", "set-sink-volume", "@DEFAULT_SINK@", "-5%"],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

@@ -12,7 +12,6 @@ class BrightnessDown(BaseAction):
         
         if sys=="linux":
                 try:
-                    import subprocess
                     subprocess.Popen(
                         ["brightnessctl", "set", "5%-"],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
