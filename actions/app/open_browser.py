@@ -9,18 +9,25 @@ class OpenBrowser(BaseAction):
 
     def execute(self) -> None:
         sys = system()
-        
-        if sys=="linux":
+
+        if sys == "linux":
             try:
                 subprocess.Popen(
                     ["xdg-open", "https://www.google.com"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 )
             except Exception as exc:
                 print(f"[{self.id}] {exc}")
-        elif sys=="win":
-            #code here
-            print("hi")
-        elif sys=="mac":
-            #code here
+
+        elif sys == "win":
+            try:
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "https://www.google.com"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")
+
+        elif sys == "mac":
+            # code here
             print("hie")

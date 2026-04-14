@@ -9,18 +9,29 @@ class ZoomIn(BaseAction):
 
     def execute(self) -> None:
         sys = system()
-        
-        if sys=="linux":
-                try:
-                    subprocess.Popen(
-                        ["ydotool", "key", "29:1", "13:1", "13:0", "29:0"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                    )
-                except Exception as exc:
-                    print(f"[{self.id}] {exc}")
-        elif sys=="win":
-            #code here
-            print("hi")
-        elif sys=="mac":
-            #code here
+
+        if sys == "linux":
+            try:
+                subprocess.Popen(
+                    ["ydotool", "key", "29:1", "13:1", "13:0", "29:0"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")
+
+        elif sys == "win":
+            try:
+                subprocess.Popen(
+                    [
+                        "powershell", "-Command",
+                        "Add-Type -AssemblyName System.Windows.Forms; "
+                        "[System.Windows.Forms.SendKeys]::SendWait('^{ADD}')"
+                    ],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")
+
+        elif sys == "mac":
+            # code here
             print("hie")

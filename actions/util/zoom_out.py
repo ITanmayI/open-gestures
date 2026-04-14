@@ -9,18 +9,30 @@ class ZoomOut(BaseAction):
 
     def execute(self) -> None:
         sys = system()
-        
-        if sys=="linux":
-                try:
-                    subprocess.Popen(
-                        ["ydotool", "key", "29:1", "12:1", "12:0", "29:0"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                    )
-                except Exception as exc:
-                    print(f"[{self.id}] {exc}")
-        elif sys=="win":
-            #code here
-            print("hi")
-        elif sys=="mac":
-            #code here
+
+        if sys == "linux":
+            try:
+                subprocess.Popen(
+                    ["ydotool", "key", "29:1", "12:1", "12:0", "29:0"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")
+
+        elif sys == "win":
+            # Ctrl + Minus via PowerShell SendKeys
+            try:
+                subprocess.Popen(
+                    [
+                        "powershell", "-Command",
+                        "Add-Type -AssemblyName System.Windows.Forms; "
+                        "[System.Windows.Forms.SendKeys]::SendWait('^{SUBTRACT}')"
+                    ],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")
+
+        elif sys == "mac":
+            # code here
             print("hie")

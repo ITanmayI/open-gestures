@@ -18,9 +18,14 @@ class PauseMedia(BaseAction):
                 )
             except Exception as exc:
                 print(f"[{self.id}] {exc}")
-        elif sys=="win":
-            #code here
-            print("hi")
+        elif sys in ("win", "windows"):
+            try:
+                from pynput.keyboard import Key, Controller
+                kb = Controller()
+                kb.press(Key.media_play_pause)
+                kb.release(Key.media_play_pause)
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")
         elif sys=="mac":
             #code here
             print("hie")
