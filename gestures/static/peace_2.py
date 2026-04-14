@@ -1,8 +1,9 @@
 from __future__ import annotations
 import subprocess
 
-GESTURE_LABEL = "Pointing_Up"
-GESTURE_NAME  = "point_up_2"
+GESTURE_LABEL = "Victory"
+GESTURE_NAME  = "victory_2"
+
 
 def matches(result) -> bool:
     if not result.gestures:

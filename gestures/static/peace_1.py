@@ -1,8 +1,9 @@
 from __future__ import annotations
 import subprocess
 
-GESTURE_LABEL = "Pointing_Up"
-GESTURE_NAME  = "point_up_2"
+GESTURE_LABEL = "Victory"
+GESTURE_NAME  = "victory_2"
+
 
 def matches(result) -> bool:
     if not result.gestures:
@@ -11,4 +12,4 @@ def matches(result) -> bool:
         1 for h in result.gestures
         if h and h[0].category_name == GESTURE_LABEL and h[0].score >= 0.70
     )
-    return count == 2
+    return count == 1
