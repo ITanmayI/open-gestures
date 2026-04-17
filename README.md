@@ -6,7 +6,7 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 
 ## Working Gestures
 
-#### Single Hand
+#### Single Hand                    Dual Hand
 
 <table>
 <tr>
