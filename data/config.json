@@ -1,26 +1,34 @@
 {
   "gesture_map": {
     "default": {
-      "closed_2": "close_window",
       "closed_1": "pause_media",
+      "closed_2": "close_window",
+
       "open_1": "play_media",
       "open_2": "open_browser",
+
       "thumb_up_1": "volume_up",
-      "thumb_up_2": "",
+      "thumb_up_2": "screenshot",
+
       "thumb_down_1": "volume_down",
-      "thumb_down_2": "",
+      "thumb_down_2": "record_screen",
+
       "iloveyou_1": "mute_media",
       "iloveyou_2": "unmute_media",
+
       "point_up_1": "brightness_up",
       "point_up_2": "zoom_in",
+
       "point_down_1": "",
       "point_down_2": "",
+
       "victory_1": "brightness_down",
       "victory_2": "zoom_out",
+      
       "swipe_up_1": "",
       "swipe_up_2": "open_custom",
       "swipe_down_1": "",
-      "swipe_down_2": "record_screen",
+      "swipe_down_2": "",
       "swipe_left_1": "next_workspace",
       "swipe_left_2": "",
       "swipe_right_1": "previous_workspace",

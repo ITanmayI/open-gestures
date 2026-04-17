@@ -57,7 +57,7 @@ def _build_action_registry() -> None:
     print(f"[Router] Registered {len(_action_registry)} actions:")
     for action_id in sorted(_action_registry):
         a = _action_registry[action_id]
-        print(f"  • {action_id:25s} — {a.name}")
+        print(f"  • {action_id:25s} — {a.name}") # gesutre-action
 
 
 def _get_action(action_id: str) -> Optional[BaseAction]:

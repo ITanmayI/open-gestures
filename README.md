@@ -1,6 +1,6 @@
 # open-gestures
 
-Open-source, real-time hand gesture control for ALL MAJOR OPERATING SYSTEMS using MediaPipe and OpenCV. The system reads frames from a webcam, classifies hand gestures using a MediaPipe GestureRecognizer model running in live-stream mode, and routes recognized gestures to modular action handlers. Up to two hands are tracked simultaneously, with priority given to two-hand gestures over single-hand ones.
+Open-source, real-time hand gesture control for **all major operating systems** using MediaPipe and OpenCV. The system reads frames from a webcam, classifies hand gestures using a MediaPipe GestureRecognizer model running in live-stream mode, and routes recognized gestures to modular action handlers. Up to two hands are tracked simultaneously, with priority given to two-hand gestures over single-hand ones.
 
 ---
 
@@ -18,12 +18,13 @@ The system uses `LIVE_STREAM` mode from the MediaPipe Tasks API, which means `re
 open-gestures/
 ├── main.py                  Entry point. Runs the camera loop, recognizer, and router.
 ├── models/
-│   └── gesture_recognizer.task   MediaPipe model file (must be downloaded separately).
+│   └── gesture_recognizer.task   MediaPipe model file.
 ├── core/
 │   └── cooldown.py          Cooldown manager preventing gesture actions from firing too rapidly.
+│   └── router.py            Router for linking actions with gestures
 └── gestures/
     ├── static/              Gesture modules that match on a single static hand pose.
-    └── motion/              Gesture modules that match on motion-based or temporal gestures.
+    └── motion/              Gesture modules that match on motion-based or temporal gestures. (Work In Progress)
 ```
 
 Each file under `gestures/static/` and `gestures/motion/` is a self-contained Python module. Modules ending in `_2` represent two-hand gestures and are loaded with higher priority than single-hand (`_1`) modules.
@@ -42,7 +43,6 @@ def matches(result) -> bool:
     # Return True if this gesture should fire given the current result.
 ```
 
-
 Modules that do not expose all two attributes are skipped at load time with a warning.
 
 ---
@@ -53,22 +53,20 @@ Every action module must expose four things:
 
 ```python
 ACTION_NAME: str         # Unique identifier used as the cooldown key and display label.
-ACTION_DESCRIPTION: str  # Unique description shown in gui
-ACTION_ID: str           # Unique id used by the router to connect gestures with the action
+ACTION_DESCRIPTION: str  # Unique description shown in the GUI.
+ACTION_ID: str           # Unique ID used by the router to connect gestures with the action.
 
 def execute(self) -> None:
-    # Action logic here
+    # Action logic here.
 ```
 
-
 Modules that do not expose all four attributes are skipped at load time with a warning.
-
 
 ---
 
 ## Requirements
 
-**Operating System:** Linux / Windows / MacOS
+**Operating System:** Linux / Windows / macOS
 
 **Python:** 3.9 or later is recommended for compatibility with the MediaPipe Tasks API.
 
@@ -95,19 +93,27 @@ cd open-gestures
 
 **2. Create and activate a virtual environment (recommended)**
 
+On Linux / macOS:
 ```bash
 python3 -m venv env
 source env/bin/activate
 ```
 
+On Windows:
+```bash
+python -m venv env
+env\Scripts\activate
+```
+
 **3. Install Python dependencies**
 
-mediapipe
-opencv-python
-
 ```bash
-pip install mediapipe opencv-python
+pip install mediapipe opencv-python numpy
 ```
+
+**4. Download the MediaPipe model**
+
+The gesture recognizer model must be downloaded separately and placed at `models/gesture_recognizer.task`. You can obtain it from [Google's MediaPipe model page](https://developers.google.com/mediapipe/solutions/vision/gesture_recognizer).
 
 ---
 
@@ -117,8 +123,7 @@ pip install mediapipe opencv-python
 python main.py
 ```
 
-The application will open a window titled `Open-Gestures` showing the gestures with their binded actions, with the option to switch actions, an also to reset them to default. 
-A preview option is also available to preview your webcamp with gesture and action detection showcase.
+The application will open a window titled `Open-Gestures` showing the gestures with their bound actions, with the option to switch actions and also to reset them to defaults. A preview option is also available to preview your webcam with gesture and action detection.
 
 ---
 
@@ -138,7 +143,7 @@ The recognizer is configured with the following defaults in `main.py`:
 | `min_hand_detection_confidence` | 0.5 |
 | `min_hand_presence_confidence` | 0.5 |
 | `min_tracking_confidence` | 0.5 |
-| Camera resolution | 640 x 480 |
+| Camera resolution | 640 × 480 |
 | Camera target FPS | 30 |
 
 These values can be adjusted directly in `main.py` inside the `build_recognizer` function and the `cap.set(...)` calls in `main()`.
@@ -161,6 +166,12 @@ These values can be adjusted directly in `main.py` inside the `build_recognizer`
 
 ---
 
+## Contributing
+
+Contributions are welcome! If you'd like to add new gesture modules, action handlers, or platform support, feel free to open a pull request on the [GitHub repository](https://github.com/GodKode69/open-gestures/tree/main).
+
+---
+
 ## License
 
-All rights are reserved by the author and the contributers.
+All rights are reserved by the author and the contributors.
