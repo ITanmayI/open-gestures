@@ -7,36 +7,31 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 ## Working Gestures
 
 #### Single Hand
+<div style="display:flex; gap:40px; align-items:flex-start;">
+
 <table>
-  <tr>
-    <td>
-
-| S. No | Gesture Name |
-|-------|-------------|
-| 1. 👍 | Thumb up    |
-| 2. 👎 | Thumb down  |
-| 3. ✌️ | Victory     |
-| 4. ☝️ | Point up    |
-| 5. ✊ | Closed      |
-| 6. 🖐️ | Open        |
-| 7. 🤟 | I Love You  |
-
-    </td>
-    <td>
-
-| S. No | Gesture Name     |
-|-------|------------------|
-| 1. 👍👍 | Thumb up 2     |
-| 2. 👎👎 | Thumb down 2   |
-| 3. ✌️✌️ | Victory 2      |
-| 4. ☝️☝️ | Point up 2     |
-| 5. ✊✊ | Closed 2       |
-| 6. 👐   | Open 2         |
-| 7. 🤟🤟 | I Love You 2   |
-
-    </td>
-  </tr>
+<tr><th>S. No</th><th>Gesture Name</th></tr>
+<tr><td>1. 👍</td><td>Thumb up</td></tr>
+<tr><td>2. 👎</td><td>Thumb down</td></tr>
+<tr><td>3. ✌️</td><td>Victory</td></tr>
+<tr><td>4. ☝️</td><td>Point up</td></tr>
+<tr><td>5. ✊</td><td>Closed</td></tr>
+<tr><td>6. 🖐️</td><td>Open</td></tr>
+<tr><td>7. 🤟</td><td>I Love You</td></tr>
 </table>
+
+<table>
+<tr><th>S. No</th><th>Gesture Name</th></tr>
+<tr><td>1. 👍👍</td><td>Thumb up 2</td></tr>
+<tr><td>2. 👎👎</td><td>Thumb down 2</td></tr>
+<tr><td>3. ✌️✌️</td><td>Victory 2</td></tr>
+<tr><td>4. ☝️☝️</td><td>Point up 2</td></tr>
+<tr><td>5. ✊✊</td><td>Closed 2</td></tr>
+<tr><td>6. 👐</td><td>Open 2</td></tr>
+<tr><td>7. 🤟🤟</td><td>I Love You 2</td></tr>
+</table>
+
+</div>
 ---
 
 ## How It Works
