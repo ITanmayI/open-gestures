@@ -42,6 +42,25 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 
 </td>
 </tr>
+
+<td valign="top">
+
+<b>Double Hand</b>
+
+<table>
+<tr><th>S. No</th><th>Gesture Name</th></tr>
+<tr><td>1. 🫱</td><td>Swipe right</td></tr>
+<tr><td>2. 🫱🫱</td><td>Swipe right 2</td></tr>
+<tr><td>3. 🫲</td><td>Swipe left</td></tr>
+<tr><td>4. 🫲🫲</td><td>Swipe left 2</td></tr>
+<tr><td>5. 🫴</td><td>Swipe up</td></tr>
+<tr><td>6. 🫴🫴</td><td>Swipe up 2</td></tr>
+<tr><td>7. 🫳</td><td>Swipe down</td></tr>
+<tr><td>7. 🫳🫳</td><td>Swipe down 2</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 ---
