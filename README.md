@@ -33,7 +33,7 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 <tr><td>3. ✌️✌️</td><td>Victory 2</td></tr>
 <tr><td>4. ☝️☝️</td><td>Point up 2</td></tr>
 <tr><td>5. ✊✊</td><td>Closed 2</td></tr>
-<tr><td>6. 👐</td><td>Open 2</td></tr>
+<tr><td>6. 🖐️🖐️</td><td>Open 2</td></tr>
 <tr><td>7. 🤟🤟</td><td>I Love You 2</td></tr>
 </table>
 
