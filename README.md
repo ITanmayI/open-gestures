@@ -7,7 +7,10 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 ## Working Gestures
 
 #### Single Hand
-<div style="display:flex; gap:40px; align-items:flex-start;">
+
+<table>
+<tr>
+<td valign="top">
 
 <table>
 <tr><th>S. No</th><th>Gesture Name</th></tr>
@@ -20,6 +23,9 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 <tr><td>7. 🤟</td><td>I Love You</td></tr>
 </table>
 
+</td>
+<td valign="top">
+
 <table>
 <tr><th>S. No</th><th>Gesture Name</th></tr>
 <tr><td>1. 👍👍</td><td>Thumb up 2</td></tr>
@@ -31,7 +37,10 @@ Open-source, real-time hand gesture control for **all major operating systems** 
 <tr><td>7. 🤟🤟</td><td>I Love You 2</td></tr>
 </table>
 
-</div>
+</td>
+</tr>
+</table>
+
 ---
 
 ## How It Works
