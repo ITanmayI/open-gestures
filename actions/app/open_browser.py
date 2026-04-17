@@ -29,5 +29,7 @@ class OpenBrowser(BaseAction):
                 print(f"[{self.id}] {exc}")
 
         elif sys == "mac":
-            # code here
-            print("hie")
+            try:
+                subprocess.Popen(["open", "-a", "Safari"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")

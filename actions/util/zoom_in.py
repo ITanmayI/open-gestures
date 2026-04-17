@@ -33,5 +33,7 @@ class ZoomIn(BaseAction):
                 print(f"[{self.id}] {exc}")
 
         elif sys == "mac":
-            # code here
-            print("hie")
+            try:
+                subprocess.Popen(["osascript", "-e", "tell application \"System Events\" to keystroke \"+\" using command down"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")

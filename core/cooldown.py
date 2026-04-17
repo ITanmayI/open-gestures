@@ -11,17 +11,17 @@ _DEFAULTS: dict[str, float] = {
     "thumb_down_1"  : 0.3,
     "open_1"        : 0.4,   # play media
     "close_1"       : 0.4,   # pause media
-    "point_up_1"    : 0.2,
-    "point_down_1"  : 0.2,
+    "point_up_1"    : 0.1,   # brightness up 
+    "victory_1"     : 0.1,   # brightness down — raised because Victory false-triggers easily
     "iloveyou_1"    : 2.0,   # long — prevents accidental re-trigger
 
     # ── Double-hand gestures ───────────────────────────────────────────────
     "thumb_up_2"    : 0.8,   # next workspace
     "thumb_down_2"  : 0.8,   # previous workspace
     "open_2"        : 4.0,   # open browser — very long, definitely intentional
-    "close_2"       : 0.6,   # kill active window
+    "close_2"       : 1.5,   # kill active window
     "point_up_2"    : 1.0,   # zoom in
-    "point_down_2"  : 2.0,   # zoom out — raised because Victory false-triggers easily
+    "victory_2"     : 2.0,   # zoom out — raised because Victory false-triggers easily
     "iloveyou_2"    : 1.0,
 
     # ── Motion gestures ────────────────────────────────────────────────────

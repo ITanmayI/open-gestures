@@ -37,5 +37,7 @@ class VolumeUp(BaseAction):
             except Exception as exc:
                 print(f"[{self.id}] {exc}")
         elif sys=="mac":
-            #code here
-            print("hie")
+            try:
+                subprocess.Popen(["osascript", "-e", "set volume output volume (output volume of (get volume settings) + 10)"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")

@@ -36,5 +36,7 @@ class MuteMedia(BaseAction):
             except Exception as exc:
                 print(f"[{self.id}] {exc}")
         elif sys=="mac":
-            #code here
-            print("hie")
+            try:
+                subprocess.Popen(["osascript", "-e", "set volume with output muted"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")

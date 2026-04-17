@@ -27,6 +27,11 @@ class BrightnessUp(BaseAction):
             except Exception as exc:
                 print(f"[{self.id}] {exc}")
                 
-        elif sys=="mac":
-            #code here
-            print("hie")
+        elif sys == "mac":
+            try:
+                subprocess.Popen(
+                    ["osascript", "-e", "tell application \"System Events\" to key code 144"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except Exception as exc:
+                print(f"[{self.id}] {exc}")

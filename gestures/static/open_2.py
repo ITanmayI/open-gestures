@@ -9,6 +9,6 @@ def matches(result) -> bool:
         return False
     open_count = sum(
         1 for h in result.gestures
-        if h and h[0].category_name == GESTURE_LABEL and h[0].score >= 0.60
+        if h and h[0].category_name == GESTURE_LABEL and h[0].score >= 0.55
     )
     return open_count == 2
