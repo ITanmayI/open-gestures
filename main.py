@@ -61,17 +61,17 @@ def _format_label(result) -> str:
 def _build_recognizer(slot: _ResultSlot) -> mp_vision.GestureRecognizer:
     def _on_result(result, _output_image, _timestamp_ms: int) -> None:
         slot.put(result) #puts wrist position do not edit
-<<<<<<< HEAD
+#<<<<<<< HEAD
         
 
-=======
+#=======
         """
         if result and result.hand_landmarks:
             swipe_tracker.feed(result.hand_landmarks)
         else:
             swipe_tracker.feed([])
         """
->>>>>>> 7056694 (changes to default gesture map + changes to cooldown.py)
+#>>>>>>> 7056694 (changes to default gesture map + changes to cooldown.py)
     options = mp_vision.GestureRecognizerOptions(
         base_options=mp_python.BaseOptions(model_asset_path=str(MODEL_PATH)),
         running_mode=VisionTaskRunningMode.LIVE_STREAM,
